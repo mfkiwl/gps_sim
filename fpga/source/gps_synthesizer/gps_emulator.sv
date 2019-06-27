@@ -5,18 +5,41 @@
 module gps_emulator #(
     parameter int Nsat = 4
 )(
-    input  logic        clk,
+    input  logic        clk,   // this is the system clock, 102.3MHz.
     input  logic        enable,
     input  logic[31:0]  freq        [Nsat-1:0], // the doppler frequency for each satellite.
     input  logic[15:0]  gain        [Nsat-1:0], // the gain of each satellite
     input  logic[5:0]   ca_sel      [Nsat-1:0], // the C/A sequence of each satellite 0-35 corresponds to SV 1-36. SV 37 not supported.
     input  logic[15:0]  noise_gain,             // gain of noise added to combined signal.
     // quantized baseband
-    output logic[2:0]  real_out,  
-    output logic[2:0]  imag_out
+    output logic[2:0]  real_out,  imag_out
 );
 
-    logic[35:0]  ca_seq         [Nsat-1:0];
+    // here is the logic to generate the c/a sequences.
+    // We generate all 36 c/a codes in phase. Each sat chan can add delay.
+    logic [9:0]   ca_addr;
+    logic [6:0]   ca_chip_count;
+    always_ff @(posedge clk) begin
+        if (1 == enable) begin
+            ca_addr <= 0;
+            ca_chip_count <= 0;
+        end else begin
+            if (99 == ca_chip_count) begin
+                ca_chip_count <= 0;
+                if (1023 == ca_addr) begin
+                    ca_addr <= 0;
+                end else begin
+                    ca_addr <= ca_addr+1;
+                end
+            end else begin
+                ca_chip_count <= ca_chip_count+1;
+            end
+        end
+    end
+    logic [35:0]  ca_seq;
+    ca_rom ca_rom_inst (.clka(clk), .addra(ca_addr), .douta(ca_seq));
+    
+    
     logic[15:0]  sat_real_out   [Nsat-1:0];
     logic[15:0]  sat_imag_out   [Nsat-1:0];
     
@@ -56,14 +79,20 @@ module gps_emulator #(
     
 
     // instantiate the noise source.
-    logic[15:0] noise_real, noise_imag;
-    logic[15:0] noise_scaled_real, noise_scaled_imag;
+    logic signed [15:0] noise_real, noise_imag;
+    gng_cmplx gng_cmplx_inst (.clk(clk), .rstn(1'b0), .ce(1'b1), .valid_out(), .real_out(noise_real), .imag_out(noise_imag));
+    // set the noise level
+    logic signed [31:0] noise_scaled_real, noise_scaled_imag;
+    always_ff @(posedge clk) begin
+        noise_scaled_real <= noise_real*noise_gain;  // maybe a sign problem with this expression.
+        noise_scaled_imag <= noise_imag*noise_gain;
+    end
 
     // Add the Gaussian noise source
     logic[15:0] bb_with_noise_real, bb_with_noise_imag;
     always_ff @(posedge clk) begin
-        bb_with_noise_real <= noise_scaled_real + temp_real_reg_reg;
-        bb_with_noise_imag <= noise_scaled_imag + temp_imag_reg_reg;
+        bb_with_noise_real <= noise_scaled_real[30-:16] + temp_real_reg_reg;
+        bb_with_noise_imag <= noise_scaled_imag[30-:16] + temp_imag_reg_reg;
     end
     
 
