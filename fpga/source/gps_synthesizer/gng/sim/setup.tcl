@@ -30,7 +30,9 @@ read_verilog -sv ../rtl/gng_lzd.v
 read_verilog -sv ../rtl/gng_smul_16_18_sadd_37.v  
 read_verilog -sv ../rtl/gng_smul_16_18.v  
 read_verilog -sv ../rtl/gng.v
-read_verilog -sv ../tb/tb_gng.sv
+read_verilog -sv ../rtl/gng_cmplx.sv
+#read_verilog -sv ../tb/tb_gng.sv
+read_verilog -sv ../tb/tb_gng_cmplx.sv
 
 close_project
 
