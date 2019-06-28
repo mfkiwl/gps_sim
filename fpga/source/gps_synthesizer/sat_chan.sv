@@ -23,15 +23,19 @@ module sat_chan (
         scaled_nco_imag <= {{7{imag_scale_var[16]}}, imag_scale_var[16-:9]}; // we should round here instead of just truncating.
     end
 
+    // modulate the doppler by the c/a code.
+    // The c/a goes on the quadrature (imaginary) part of the signal.
+    // A '1' corresponds to a multiplication by -1. '0' corresponds to +1.
     logic sat_ca;
     assign sat_ca = ca_seq[ca_sel];
     always_ff @(posedge clk) begin
-        // modulate the doppler by the c/a code.
         if (1 == sat_ca) begin
-            real_out <= +scaled_nco_real;
+            imag_out <= -scaled_nco_imag;
         end else begin
-            real_out <= -scaled_nco_real;
+            imag_out <= +scaled_nco_imag;
         end        
-        imag_out <= +scaled_nco_imag;  // P-code not implemented.
+        real_out <= +scaled_nco_real;  // P-code not implemented yet.
     end
 endmodule
+
+
