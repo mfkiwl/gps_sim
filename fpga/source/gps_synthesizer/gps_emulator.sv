@@ -79,12 +79,13 @@ module gps_emulator #(
     
 
     // instantiate the noise source.
+    // The noise is a very good approximation to Gaussian with standard deviation = 1.0 using 16.11 fixed point interpretation.
     logic signed [15:0] noise_real, noise_imag;
     gng_cmplx gng_cmplx_inst (.clk(clk), .rstn(1'b0), .ce(1'b1), .valid_out(), .real_out(noise_real), .imag_out(noise_imag));
     // set the noise level
     logic signed [31:0] noise_scaled_real, noise_scaled_imag;
     always_ff @(posedge clk) begin
-        noise_scaled_real <= noise_real*noise_gain;  // maybe a sign problem with this expression.
+        noise_scaled_real <= noise_real*noise_gain;  // maybe a sign problem with this systemverilog expression.
         noise_scaled_imag <= noise_imag*noise_gain;
     end
 
@@ -94,9 +95,14 @@ module gps_emulator #(
         bb_with_noise_real <= noise_scaled_real[30-:16] + temp_real_reg_reg;
         bb_with_noise_imag <= noise_scaled_imag[30-:16] + temp_imag_reg_reg;
     end
+
+    // Let's put an ILA core here to observe the synthesized signal before quantization.
+    // This will also prevent all logic being synthesized away when nothing is on the output.
+    bb_ila bb_ila_inst (.clk(clk), .probe0({bb_with_noise_real, bb_with_noise_imag})); // 16+16
     
 
     // Quantize down to emulate commercial GPS RF front end chips like the MAX2769.
+    // This should include rounding and saturation at desired levels.
 
 endmodule
 

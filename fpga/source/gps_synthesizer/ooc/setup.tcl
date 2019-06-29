@@ -15,6 +15,9 @@ upgrade_ip -quiet  [get_ips *]
 generate_target {all} [get_ips *]
 
 # Read in the hdl source.
+read_verilog -sv ../doppler_nco.sv
+read_verilog -sv ../sat_chan.sv
+
 read_verilog -sv ../gng/rtl/gng_coef.v  
 read_verilog -sv ../gng/rtl/gng_ctg.v  
 read_verilog -sv ../gng/rtl/gng_interp.v  
@@ -24,10 +27,9 @@ read_verilog -sv ../gng/rtl/gng_smul_16_18.v
 read_verilog -sv ../gng/rtl/gng.v
 read_verilog -sv ../gng/rtl/gng_cmplx.sv
 
-read_verilog -sv ../doppler_nco.sv
-read_verilog -sv ../sat_chan.sv
 read_verilog -sv ../gps_emulator.sv
-read_verilog -sv ../gps_emulator_tb.sv
+
+read_xdc ./top.xdc
 
 close_project
 
