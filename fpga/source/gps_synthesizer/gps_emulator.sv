@@ -16,17 +16,17 @@ module gps_emulator #(
 );
 
     // here is the logic to generate the c/a sequences.
-    // We generate all 36 c/a codes in phase. Each sat chan can add delay.
+    // We generate all 36 c/a codes in phase. Each sat chan can select one to use and (eventually) add delay.
     logic [9:0]   ca_addr;
     logic [6:0]   ca_chip_count;
     always_ff @(posedge clk) begin
-        if (1 == enable) begin
+        if (0 == enable) begin
             ca_addr <= 0;
             ca_chip_count <= 0;
         end else begin
             if (99 == ca_chip_count) begin
                 ca_chip_count <= 0;
-                if (1023 == ca_addr) begin
+                if (1022 == ca_addr) begin
                     ca_addr <= 0;
                 end else begin
                     ca_addr <= ca_addr+1;
@@ -51,7 +51,8 @@ module gps_emulator #(
             .enable(enable),
             .freq(freq[sat]),
             .gain(gain[sat]),
-            .ca_seq(ca_seq[sat]),
+            .ca_sel(ca_sel[sat]),
+            .ca_seq(ca_seq),
             .real_out(sat_real_out[sat]),
             .imag_out(sat_imag_out[sat])
         );
