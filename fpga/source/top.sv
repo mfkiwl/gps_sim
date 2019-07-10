@@ -25,31 +25,6 @@ module top (
 );
 
 
-    // First, the gps emulator.
-    localparam int Nsat = 4;
-
-    logic        gps_enable;
-    logic[31:0]  sat_freq        [Nsat-1:0]; // the doppler frequency for each satellite.
-    logic[15:0]  sat_gain        [Nsat-1:0]; // the gain of each satellite
-    logic[5:0]   sat_ca_sel      [Nsat-1:0]; // the C/A sequence of each satellite 0-35 corresponds to SV 1-36. SV 37 not supported.
-    logic[15:0]  gps_noise_gain;             // gain of noise added to combined signal.
-    // quantized baseband
-    logic[2:0]  real_out,  imag_out;
-
-    gps_emulator #(
-        .Nsat(4)
-    )(
-        .clk        (clk),
-        .enable     (gps_enable),
-        .freq       (sat_freq),
-        .gain       (sat_gain),
-        .ca_sel     (sat_ca_sel),
-        .noise_gain (gps_noise_gain),
-        .real_out   (real_out),
-        .imag_out   (imag_out)
-    );
-
-
     // Here add the software control path via Zynq.
     logic [39:0]    M00_AXI_araddr;
     logic [2:0]     M00_AXI_arprot;
@@ -122,9 +97,20 @@ module top (
         .axi_aresetn(axi_aresetn)
     );
     
+    localparam int Nsat = 4;
 
+    logic        gps_enable;
+    logic[31:0]  sat_freq        [Nsat-1:0]; // the doppler frequency for each satellite.
+    logic[15:0]  sat_gain        [Nsat-1:0]; // the gain of each satellite
+    logic[5:0]   sat_ca_sel      [Nsat-1:0]; // the C/A sequence of each satellite 0-35 corresponds to SV 1-36. SV 37 not supported.
+    logic[15:0]  gps_noise_gain;             // gain of noise added to combined signal.
+    
     // This register file gives software contol over unit under test (UUT).
-    logic [Naddr-1:0][31:0] slv_reg, slv_read;
+    localparam int Nregs = 32;
+    localparam int Naddr = $clog2(Nregs);
+    localparam int Nstart = 8;
+    localparam int Nstep = 4;
+    logic [Nregs-1:0][31:0] slv_reg, slv_read;
 
     assign slv_read[0] = 32'hdeadbeef;
     assign slv_read[1] = 32'h76543210;
@@ -132,10 +118,6 @@ module top (
     assign gps_noise_gain = slv_reg[7][15:0];
     assign slv_read[7] = slv_reg[7];
     
-    localparam int Nregs = 32;
-    localparam int Naddr = $clog2(Nregs);
-    localparam int Nstart = 8;
-    localparam int Nstep = 4;
     genvar sat;
     generate for (sat=0; sat<Nsat; sat++) begin
         // the satellite channel control signals.
@@ -182,5 +164,22 @@ module top (
 		.S_AXI_WVALID  (M00_AXI_wvalid )
 	);
 
+    logic[2:0]  real_out,  imag_out;	    // quantized baseband
+    gps_emulator #(
+        .Nsat(Nsat)
+    )(
+        .clk        (axi_aclk),
+        .enable     (gps_enable),
+        .freq       (sat_freq),
+        .gain       (sat_gain),
+        .ca_sel     (sat_ca_sel),
+        .noise_gain (gps_noise_gain),
+        .real_out   (real_out),
+        .imag_out   (imag_out)
+    );
+    
+    // let's put an ILA to observe the output.
+    output_ila output_ila_inst( .clk(axi_aclk), .probe0({real_out, imag_out}) ); // 3+3
+    
 endmodule
     

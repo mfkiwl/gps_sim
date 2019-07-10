@@ -109,6 +109,11 @@ module gps_emulator #(
 
     // Quantize down to emulate commercial GPS RF front end chips like the MAX2769.
     // This should include rounding and saturation at desired levels.
+    // For now let's just map to the most significant bits.
+    always_ff @(posedge clk) begin
+        real_out <= bb_with_noise_real[15-:3];
+        imag_out <= bb_with_noise_imag[15-:3];
+    end
 
 endmodule
 

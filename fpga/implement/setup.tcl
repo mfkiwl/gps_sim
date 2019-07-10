@@ -16,6 +16,7 @@ read_ip ../source/gps_synthesizer/doppler_rom/doppler_rom.xci
 read_ip ../source/gps_synthesizer/doppler_mult/doppler_mult.xci
 read_ip ../source/gps_synthesizer/ca_rom/ca_rom.xci
 read_ip ../source/gps_synthesizer/bb_ila/bb_ila.xci
+read_ip ../source/output_ila/output_ila.xci
 upgrade_ip -quiet  [get_ips *]
 generate_target {all} [get_ips *]
 

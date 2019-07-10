@@ -32,10 +32,12 @@ module sat_chan (
     
     // Let's instantiate a Xilinx core for the complex multiplier. This could be changed to something portable without much trouble. 
     logic [31:0] mult_s_axis_a_tdata, mult_s_axis_b_tdata;
-    assign mult_s_axis_a_tdata[16+:9] = pre_scaled_imag;
-    assign mult_s_axis_a_tdata[ 0+:9] = pre_scaled_real;
-    assign mult_s_axis_b_tdata[16+:9] = nco_imag;
-    assign mult_s_axis_b_tdata[ 0+:9] = nco_real;
+//    assign mult_s_axis_a_tdata[16+:9] = pre_scaled_imag;
+//    assign mult_s_axis_a_tdata[ 0+:9] = pre_scaled_real;
+//    assign mult_s_axis_b_tdata[16+:9] = nco_imag;
+//    assign mult_s_axis_b_tdata[ 0+:9] = nco_real;
+    assign mult_s_axis_a_tdata = { {7{1'b0}}, pre_scaled_imag, {7{1'b0}}, pre_scaled_real };
+    assign mult_s_axis_b_tdata = { {7{1'b0}},        nco_imag, {7{1'b0}},        nco_real };
     logic [47:0] mult_m_axis_dout_tdata;
     doppler_mult doppler_mult_inst (
         .aclk(clk),
