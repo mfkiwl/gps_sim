@@ -25,32 +25,24 @@ int main(int argc,char** argv)
        exit(-1);
     }
     fprintf(stdout,"phy_addr 0x%08x with size 0x%08x to viraddr 0x%p.\n",pcie_bar0_addr,pcie_bar0_size, pcie_addr);
-
     fprintf(stdout,"FPGA ID: 0x%08X\n",read_reg(pcie_addr,FPGA_ID));
-
     fprintf(stdout,"VERSION: 0x%08X\n",read_reg(pcie_addr,FPGA_VERSION));
 
-    uint32_t write_data[TEST_BRAM_SIZE/4], read_data[TEST_BRAM_SIZE/4];
-
-    // create test data.
-    //srand(1);
-    for (int i=0; i<TEST_BRAM_SIZE/4; i++) write_data[i] = rand();
-
-    uint32_t* bram_ptr = pcie_addr + TEST_BRAM_OFFSET;
-    fprintf(stdout, "bram_ptr = %p\n", bram_ptr);
-
-    // write bram
-    for (int i=0; i<TEST_BRAM_SIZE/4; i++) bram_ptr[i] = write_data[i];
-
-    // read bram
-    for (int i=0; i<TEST_BRAM_SIZE/4; i++) read_data[i] = bram_ptr[i];
-
-    // chech bram results
-    int errors = 0;
-    for (int i=0; i<TEST_BRAM_SIZE/4; i++) {
-        if (read_data[i] != write_data[i]) errors++;
+    // Setup the SV.
+    int sat;
+    for (sat=0; sat<N_SAT; sat++){
+        write_reg(pcie_addr, EMU_REG_START+(sat*EMU_REG_STEP)+EMU_DOPP_FREQ, 0);
+        write_reg(pcie_addr, EMU_REG_START+(sat*EMU_REG_STEP)+EMU_DOPP_GAIN, 0);
+        write_reg(pcie_addr, EMU_REG_START+(sat*EMU_REG_STEP)+EMU_DOPP_CA_SEL, sat);
     }
-    fprintf(stdout, "errors = %d\n", errors);
+
+    // Turn on the noise source.
+    write_reg(pcie_addr, EMU_NOISE_GAIN, 0x0800);
+
+    // adjust SV 0.
+    sat = 0;
+    write_reg(pcie_addr, EMU_REG_START+(sat*EMU_REG_STEP)+EMU_DOPP_FREQ, 0x01234567);
+    write_reg(pcie_addr, EMU_REG_START+(sat*EMU_REG_STEP)+EMU_DOPP_GAIN, 0x0400);
 
     munmap(pcie_addr,pcie_bar0_size);
 
