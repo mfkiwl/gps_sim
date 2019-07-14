@@ -58,8 +58,8 @@ module sat_chan (
         scaled_real <= $signed(mult_out_real)*$signed({1'b0, gain});
         scaled_imag <= $signed(mult_out_imag)*$signed({1'b0, gain});
     end
-    assign real_out = scaled_real[30-:16];
-    assign imag_out = scaled_imag[30-:16];
+    assign real_out = scaled_real[31-:16];
+    assign imag_out = scaled_imag[31-:16];
     
 endmodule
 
