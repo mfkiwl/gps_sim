@@ -115,6 +115,9 @@ module top (
     assign slv_read[0] = 32'hdeadbeef;
     assign slv_read[1] = 32'h76543210;
     
+    assign gps_enable = slv_reg[6][0];
+    assign slv_read[6] = slv_reg[6];
+    
     assign gps_noise_gain = slv_reg[7][15:0];
     assign slv_read[7] = slv_reg[7];
     
@@ -167,7 +170,7 @@ module top (
     logic[2:0]  real_out,  imag_out;	    // quantized baseband
     gps_emulator #(
         .Nsat(Nsat)
-    )(
+    ) uut (
         .clk        (axi_aclk),
         .enable     (gps_enable),
         .freq       (sat_freq),
