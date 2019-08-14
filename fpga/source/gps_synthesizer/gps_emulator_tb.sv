@@ -26,7 +26,7 @@ module gps_emulator_tb();
         for (int i =0; i<Nsat; i++) ca_sel[i] = i;
         freq[0] = 32'h028F5C29; // (2**32)*Fc/Fs;
         gain[0] = 16'h1000;    // 0xffff ~= +1.0
-        noise_gain = 16'h4000; // 0xffff ~= +1.0
+        noise_gain = 16'h8000; // 0xffff ~= +1.0
         #(clk_period*10);
         enable = 1;
      end
