@@ -12,7 +12,7 @@ module gps_emulator #(
     input  logic[5:0]   ca_sel      [Nsat-1:0], // the C/A sequence of each satellite 0-35 corresponds to SV 1-36. SV 37 not supported.
     input  logic[15:0]  noise_gain,             // gain of noise added to combined signal.
     // quantized baseband
-    output logic[2:0]  real_out,  imag_out
+    output logic[7:0]  real_out,  imag_out
 );
 
     // here is the logic to generate the c/a sequences.
@@ -112,8 +112,8 @@ module gps_emulator #(
     // This should include rounding and saturation at desired levels.
     // For now let's just map to the most significant bits.
     always_ff @(posedge clk) begin
-        real_out <= bb_with_noise_real[15-:3];
-        imag_out <= bb_with_noise_imag[15-:3];
+        real_out <= bb_with_noise_real[15-:8];
+        imag_out <= bb_with_noise_imag[15-:8];
     end
 
 endmodule

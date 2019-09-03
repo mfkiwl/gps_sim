@@ -9,8 +9,7 @@ module gps_emulator_tb();
     logic [15:0]  gain        [Nsat-1:0]; // the gain of each satellite
     logic [5:0]   ca_sel      [Nsat-1:0]; // the C/A sequence of each satellite 0-35 corresponds to SV 1-36. SV 37 not supported.
     logic [15:0]  noise_gain;             // gain of noise added to combined signal.
-    logic [2:0]   real_out;  
-    logic [2:0]   imag_out;
+    logic [7:0]   real_out, imag_out;  
 
 
     localparam clk_period = 10;
@@ -26,7 +25,7 @@ module gps_emulator_tb();
         for (int i =0; i<Nsat; i++) ca_sel[i] = i;
         freq[0] = 32'd536871; // (2**32)*(0.5KHz/4Msps);
         gain[0] = 16'h1000;    // 0xffff ~= +1.0
-        noise_gain = 16'h8000; // 0xffff ~= +1.0
+        noise_gain = 16'h4000; // 0xffff ~= +1.0
         #(clk_period*10);
         enable = 1;
      end

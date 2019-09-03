@@ -9,14 +9,14 @@ Goals:
 
 - Multiple satellite channels, perhaps 8.
 - C/A coarse acquisition sequence, selectable among the 37 possible.
-- 50 baud message data added to C/A sequence.
-- P-Code sequence, modelled as an interferor.
 - Programmable noise source.
 - Signal strength adjustable per satellite
 - Doppler frequency shift adjustable per satellite
+- C/A code delay modelling
 
 Stretch Goals:
 
-- C/A code delay modelling
+- P-Code sequence, modelled as an interferor.
+- 50 baud message data added to C/A sequence.
 
 
