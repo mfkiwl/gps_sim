@@ -27,9 +27,9 @@ module sat_chan (
     logic [5:0] bpsk_imag, bpsk_real;
     always_ff @(posedge clk) begin
         if (1 == sat_ca) begin
-            mult_out_imag <= -dop_nco_imag;
+            mult_out_imag <= -$signed(dop_nco_imag);
         end else begin
-            mult_out_imag <= +dop_nco_imag;
+            mult_out_imag <= +$signed(dop_nco_imag);
         end        
         mult_out_real <= dop_nco_real; // Leave real part unmodified (no P code).
     end

@@ -8,6 +8,7 @@ module gps_emulator #(
     input  logic        clk,   // this is the system clock, 102.3MHz.
     input  logic        enable,
     input  logic[31:0]  freq        [Nsat-1:0], // the doppler frequency for each satellite.
+    input  logic[31:0]  dop_freq    [Nsat-1:0], // the doppler frequency for each satellite.
     input  logic[15:0]  gain        [Nsat-1:0], // the gain of each satellite
     input  logic[5:0]   ca_sel      [Nsat-1:0], // the C/A sequence of each satellite 0-35 corresponds to SV 1-36. SV 37 not supported.
     input  logic[15:0]  noise_gain,             // gain of noise added to combined signal.
@@ -15,49 +16,26 @@ module gps_emulator #(
     output logic[7:0]  real_out,  imag_out
 );
 
-    // here is the logic to generate the c/a sequences.
-    // We generate all 36 c/a codes in phase. Each sat chan can select one to use and (eventually) add delay.
-    localparam integer samp_per_chip = 4;
-    logic [9:0]   ca_addr;
-    logic [6:0]   ca_chip_count;
-    always_ff @(posedge clk) begin
-        if (0 == enable) begin
-            ca_addr <= 0;
-            ca_chip_count <= 0;
-        end else begin
-            if ((samp_per_chip-1) == ca_chip_count) begin
-                ca_chip_count <= 0;
-                if (1022 == ca_addr) begin
-                    ca_addr <= 0;
-                end else begin
-                    ca_addr <= ca_addr+1;
-                end
-            end else begin
-                ca_chip_count <= ca_chip_count+1;
-            end
-        end
-    end
-    logic [35:0]  ca_seq;
-    ca_rom ca_rom_inst (.clka(clk), .addra(ca_addr), .douta(ca_seq));
-    
-    
-    logic[15:0]  sat_real_out   [Nsat-1:0];
-    logic[15:0]  sat_imag_out   [Nsat-1:0];
     
     // generate the individual satellite channel blocks.
+    logic[15:0]  sat_real_out   [Nsat-1:0];
+    logic[15:0]  sat_imag_out   [Nsat-1:0];
     genvar sat;
     generate for (sat=0; sat<Nsat; sat++) begin
         sat_chan sat_chan_inst (
             .clk(clk),
-            .enable(enable),
-            .freq(freq[sat]),
+            .reset(),
+            .dv_in(),
+            .dop_freq(freq[sat]),
+            .code_freq(code_freq[sat]),
             .gain(gain[sat]),
             .ca_sel(ca_sel[sat]),
-            .ca_seq(ca_seq),
+            .dv_out(),
             .real_out(sat_real_out[sat]),
             .imag_out(sat_imag_out[sat])
         );
     end endgenerate
+
 
     // sum the Nsat satellite outputs.
     // It is a parameterized number of inputs so let's do it with a for loop.
@@ -70,6 +48,7 @@ module gps_emulator #(
             temp_imag += sat_imag_out[i];
         end
     end
+
 
     // Here are some registers to allow synthesis pipeline rebalancing.
     logic[15:0] temp_real_reg, temp_imag_reg;
@@ -93,6 +72,7 @@ module gps_emulator #(
         noise_scaled_imag <= $signed(noise_imag)*$signed({1'b0, noise_gain});
     end
 
+
     // Add the Gaussian noise source
     logic[15:0] dither_real, dither_imag;
     assign dither_real = noise_scaled_real[31-:16];
@@ -102,6 +82,7 @@ module gps_emulator #(
         bb_with_noise_real <= dither_real + temp_real_reg_reg;  // We should have saturation logic here.
         bb_with_noise_imag <= dither_imag + temp_imag_reg_reg;
     end
+
 
     // Let's put an ILA core here to observe the synthesized signal before quantization.
     // This will also prevent all logic being synthesized away when nothing is on the output.
