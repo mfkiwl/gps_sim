@@ -170,24 +170,45 @@ module top (
 		.S_AXI_WVALID  (M00_AXI_wvalid )
 	);
 
-    logic[2:0]  real_out,  imag_out;	    // quantized baseband
+    // make the data valid heartbeat.
+    localparam Ndv = 64;  // We want to emulate these rates. 256MHz/4Msps = 64
+    logic[7:0] dv_count;
+    logic gps_dv_in;
+    always_ff @(posedge axi_aclk) begin
+        if(1==gps_enable) begin
+            if (0==dv_count) begin  
+                dv_count <= Ndv-1;
+                gps_dv_in <= 1;
+            end else begin
+                dv_count <= dv_count-1;
+                gps_dv_in <= 0;
+            end
+        end else begin
+            dv_count <= Ndv-1;
+            gps_dv_in <= 0;
+        end
+    end
+
+    logic[7:0]  real_out,  imag_out;
+    logic gps_dv_out;
     gps_emulator #(
         .Nsat(Nsat)
     ) uut (
         .clk        (axi_aclk),
         .reset      (gps_reset),
-        .dv_in      (gps_enable),
+        .dv_in      (gps_dv_in),
         .code_freq  (sat_code_freq),
         .dop_freq   (sat_freq),
         .gain       (sat_gain),
         .ca_sel     (sat_ca_sel),
         .noise_gain (gps_noise_gain),
+        .dv_out     (gps_dv_out),
         .real_out   (real_out),
         .imag_out   (imag_out)
     );
     
     // let's put an ILA to observe the output.
-    output_ila output_ila_inst( .clk(axi_aclk), .probe0({real_out, imag_out}) ); // 3+3
+    output_ila output_ila_inst( .clk(axi_aclk), .probe0({real_out, imag_out}), .probe1(gps_dv_out) ); // 8+8
     
 endmodule
     
