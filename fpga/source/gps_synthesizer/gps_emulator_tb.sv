@@ -28,15 +28,15 @@ module gps_emulator_tb();
         for (int i =0; i<Nsat; i++) dop_freq[i] = 0;
         for (int i =0; i<Nsat; i++) gain[i] = 0;
         for (int i =0; i<Nsat; i++) ca_sel[i] = i;
-        code_freq[0] = 32'd5368710; // 
+        code_freq[0] = 32'd1048640003; // 
         dop_freq[0] = 32'd536871; // (2**32)*(0.5KHz/4Msps);
-        gain[0] = 16'h1000;    // 0xffff ~= +1.0
-        noise_gain = 16'h4000; // 0xffff ~= +1.0
+        gain[0] = 16'hffff;    // 0xffff ~= +1.0
+        noise_gain = 16'h8000; // 0xffff ~= +1.0
         #(clk_period*10);
         reset = 0;
         forever begin
             dv_in = 0;
-            #(clk_period*15);
+            #(clk_period*63);
             dv_in = 1;
             #(clk_period*1);
         end

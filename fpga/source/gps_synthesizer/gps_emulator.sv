@@ -65,7 +65,8 @@ module gps_emulator #(
     // instantiate the noise source.
     // This noise is a very good approximation to Gaussian with standard deviation = 1.0 using 16.11 fixed point interpretation.
     logic signed [15:0] noise_real, noise_imag;
-    gng_cmplx gng_cmplx_inst (.clk(clk), .rstn(~reset), .ce(dv_in), .valid_out(), .real_out(noise_real), .imag_out(noise_imag));
+    logic noise_dv_out;
+    gng_cmplx gng_cmplx_inst (.clk(clk), .rstn(~reset), .ce(dv_in), .valid_out(noise_dv_out), .real_out(noise_real), .imag_out(noise_imag));
     // adjust the noise level
     logic signed [31:0] noise_scaled_real, noise_scaled_imag;
     always_ff @(posedge clk) begin
@@ -80,8 +81,10 @@ module gps_emulator #(
     assign dither_imag = noise_scaled_imag[31-:16];
     logic[15:0] bb_with_noise_real, bb_with_noise_imag;
     always_ff @(posedge clk) begin
-        bb_with_noise_real <= dither_real + temp_real_reg_reg;  // We should have saturation logic here.
-        bb_with_noise_imag <= dither_imag + temp_imag_reg_reg;
+        if (1==noise_dv_out) begin
+            bb_with_noise_real <= dither_real + temp_real_reg_reg;  // We should have saturation logic here.
+            bb_with_noise_imag <= dither_imag + temp_imag_reg_reg;
+        end
     end
 
 
@@ -98,7 +101,11 @@ module gps_emulator #(
         imag_out <= bb_with_noise_imag[15-:8];
     end
     
-    always_ff @(posedge clk) dv_out <= dv_in;
+    logic pre_dv_out;
+    always_ff @(posedge clk) begin
+        pre_dv_out <= noise_dv_out;
+        dv_out <= pre_dv_out;
+    end
 
 endmodule
 
