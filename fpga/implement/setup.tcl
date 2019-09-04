@@ -12,19 +12,15 @@ load_features ipintegrator
 #set_property  ip_repo_paths ../../hls/cholesky_inverse/csynth/solution1/impl/ip/ [current_project]
 update_ip_catalog
 
-read_ip ../source/gps_synthesizer/doppler_rom/doppler_rom.xci
-read_ip ../source/gps_synthesizer/doppler_mult/doppler_mult.xci
-read_ip ../source/gps_synthesizer/ca_rom/ca_rom.xci
+#read_ip ../source/gps_synthesizer/doppler_rom/doppler_rom.xci
+#read_ip ../source/gps_synthesizer/doppler_mult/doppler_mult.xci
+read_ip ../source/gps_synthesizer/doppler_nco/dop_cos_rom/dop_cos_rom.xci
+read_ip ../source/gps_synthesizer/doppler_nco/dop_sin_rom/dop_sin_rom.xci
+read_ip ../source/gps_synthesizer/code_nco/ca_rom/ca_rom.xci
 read_ip ../source/gps_synthesizer/bb_ila/bb_ila.xci
 read_ip ../source/output_ila/output_ila.xci
 upgrade_ip -quiet  [get_ips *]
 generate_target {all} [get_ips *]
-
-# make the Zynq block diagram
-source ../source/system.tcl
-generate_target {synthesis implementation} [get_files ./proj.srcs/sources_1/bd/system/system.bd]
-set_property synth_checkpoint_mode None    [get_files ./proj.srcs/sources_1/bd/system/system.bd]
-#write_hwdef -force -verbose ./results/system.hdf
 
 # Read in the hdl source.
 read_verilog -sv ../source/gps_synthesizer/gng/rtl/gng_coef.v  
@@ -36,7 +32,8 @@ read_verilog -sv ../source/gps_synthesizer/gng/rtl/gng_smul_16_18.v
 read_verilog -sv ../source/gps_synthesizer/gng/rtl/gng.v
 read_verilog -sv ../source/gps_synthesizer/gng/rtl/gng_cmplx.sv
 
-read_verilog -sv ../source/gps_synthesizer/doppler_nco.sv
+read_verilog -sv ../source/gps_synthesizer/code_nco/code_nco.sv
+read_verilog -sv ../source/gps_synthesizer/doppler_nco/doppler_nco.sv
 read_verilog -sv ../source/gps_synthesizer/sat_chan.sv
 read_verilog -sv ../source/gps_synthesizer/gps_emulator.sv
 
@@ -45,6 +42,11 @@ read_verilog -sv ../source/top.sv
 
 read_xdc ../source/top.xdc
 #set_property used_in_synthesis false [get_files ../source/top.xdc]
+
+# make the Zynq block diagram
+source ../source/system.tcl
+generate_target {synthesis implementation} [get_files ./proj.srcs/sources_1/bd/system/system.bd]
+set_property synth_checkpoint_mode None    [get_files ./proj.srcs/sources_1/bd/system/system.bd]
 
 close_project
 

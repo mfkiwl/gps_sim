@@ -99,7 +99,8 @@ module top (
     
     localparam int Nsat = 4;
 
-    logic        gps_enable;
+    logic        gps_enable, gps_reset;
+    logic[31:0]  sat_code_freq   [Nsat-1:0]; // the code frequency for each satellite.
     logic[31:0]  sat_freq        [Nsat-1:0]; // the doppler frequency for each satellite.
     logic[15:0]  sat_gain        [Nsat-1:0]; // the gain of each satellite
     logic[5:0]   sat_ca_sel      [Nsat-1:0]; // the C/A sequence of each satellite 0-35 corresponds to SV 1-36. SV 37 not supported.
@@ -116,6 +117,7 @@ module top (
     assign slv_read[1] = 32'h76543210;
     
     assign gps_enable = slv_reg[6][0];
+    assign gps_reset  = slv_reg[6][4];
     assign slv_read[6] = slv_reg[6];
     
     assign gps_noise_gain = slv_reg[7][15:0];
@@ -124,9 +126,10 @@ module top (
     genvar sat;
     generate for (sat=0; sat<Nsat; sat++) begin
         // the satellite channel control signals.
-        assign sat_freq  [sat] = slv_reg[Nstart+Nstep*sat+0][31:0]; 
-        assign sat_gain  [sat] = slv_reg[Nstart+Nstep*sat+1][15:0]; 
-        assign sat_ca_sel[sat] = slv_reg[Nstart+Nstep*sat+2][ 5:0]; 
+        assign sat_freq      [sat] = slv_reg[Nstart+Nstep*sat+0][31:0]; 
+        assign sat_gain      [sat] = slv_reg[Nstart+Nstep*sat+1][15:0]; 
+        assign sat_ca_sel    [sat] = slv_reg[Nstart+Nstep*sat+2][ 5:0]; 
+        assign sat_code_freq [sat] = slv_reg[Nstart+Nstep*sat+3][31:0]; 
         // make them readable.
         assign slv_read[Nstart+Nstep*sat+0] =  slv_reg[Nstart+Nstep*sat+0];
         assign slv_read[Nstart+Nstep*sat+1] =  slv_reg[Nstart+Nstep*sat+1];
@@ -172,8 +175,10 @@ module top (
         .Nsat(Nsat)
     ) uut (
         .clk        (axi_aclk),
-        .enable     (gps_enable),
-        .freq       (sat_freq),
+        .reset      (gps_reset),
+        .dv_in      (gps_enable),
+        .code_freq  (sat_code_freq),
+        .dop_freq   (sat_freq),
         .gain       (sat_gain),
         .ca_sel     (sat_ca_sel),
         .noise_gain (gps_noise_gain),
