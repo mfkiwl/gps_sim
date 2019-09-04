@@ -41,9 +41,6 @@ int main(int argc,char** argv)
         write_reg(pcie_addr, EMU_REG_START+(sat*EMU_REG_STEP)+EMU_DOPP_CA_SEL, sat);
     }
 
-    // Turn on the noise source.
-    write_reg(pcie_addr, EMU_NOISE_GAIN, 0x0000);
-
     // adjust SV 0.
     sat = 0;
     double Fs = 16.383e6/4;
@@ -55,6 +52,9 @@ int main(int argc,char** argv)
     write_reg(pcie_addr, EMU_REG_START+(sat*EMU_REG_STEP)+EMU_CODE_FREQ, code_reg_val);
     write_reg(pcie_addr, EMU_REG_START+(sat*EMU_REG_STEP)+EMU_DOPP_FREQ, dopp_reg_val);
     write_reg(pcie_addr, EMU_REG_START+(sat*EMU_REG_STEP)+EMU_DOPP_GAIN, 0xffff);
+
+    // Turn on the noise source.
+    write_reg(pcie_addr, EMU_NOISE_GAIN, 0xffff);
 
     // release emulator from reset.
     write_reg(pcie_addr, EMU_CONTROL,    0x00);
