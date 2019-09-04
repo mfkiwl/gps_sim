@@ -15,24 +15,28 @@ module sat_chan (
 
     // Doppler NCO
     logic [5:0] dop_nco_real, dop_nco_imag;    
-    doppler_nco doppler_nco_inst ( .clk(clk), .reset(reset), .dv_in(dv_in), .freq(dop_freq), .dv_out(), .real_out(dop_nco_real), .imag_out(dop_nco_imag) );
+    logic dopp_dv_out;
+    doppler_nco doppler_nco_inst ( .clk(clk), .reset(reset), .dv_in(dv_in), .freq(dop_freq), .dv_out(dopp_dv_out), .real_out(dop_nco_real), .imag_out(dop_nco_imag) ); // 2 pipe delays
 
 
     // Code NCO
     logic sat_ca;
-    code_nco code_nco_inst (.clk(clk), .reset(reset), .ca_sel(ca_sel), .dv_in(dv_in), .freq(code_freq), .dv_out(), .q(sat_ca));
+    logic code_dv_out;
+    code_nco code_nco_inst (.clk(clk), .reset(reset), .ca_sel(ca_sel), .dv_in(dv_in), .freq(code_freq), .dv_out(code_dv_out), .q(sat_ca)); // 5 pipe delays
 
 
     // Change the sign on the doppler based on the CA sequence.
     logic [5:0] bpsk_imag, bpsk_real;
     always_ff @(posedge clk) begin
-        if (1 == sat_ca) begin
-            bpsk_imag <= -$signed(dop_nco_imag);
-            bpsk_real <= -$signed(dop_nco_real);
-        end else begin
-            bpsk_imag <= +$signed(dop_nco_imag);
-            bpsk_real <= +$signed(dop_nco_real);
-        end        
+        if (1==code_dv_out) begin
+            if (1 == sat_ca) begin
+                bpsk_imag <= -$signed(dop_nco_imag);
+                bpsk_real <= -$signed(dop_nco_real);
+            end else begin
+                bpsk_imag <= +$signed(dop_nco_imag);
+                bpsk_real <= +$signed(dop_nco_real);
+            end     
+        end   
     end
 
     
@@ -46,7 +50,12 @@ module sat_chan (
     assign imag_out = scaled_imag[22-:16];
 
     // Data valid
-    always_ff @(posedge clk) dv_out <= dv_in;
+    logic[3:0] dv_pipe;
+    assign dv_pipe[0] = code_dv_out;
+    always_ff @(posedge clk) begin
+        dv_pipe[3:1] <= dv_pipe[2:0];
+    end
+    assign dv_out = dv_pipe[2]; 
 
     
 endmodule

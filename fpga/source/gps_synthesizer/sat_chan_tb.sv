@@ -2,11 +2,12 @@
 
 module sat_chan_tb ();
 
-    logic        enable;
-    logic[31:0]  freq;
+    logic        dv_in, reset;
+    logic[31:0]  code_freq;
+    logic[31:0]  dop_freq;
     logic[15:0]  gain;    
     logic[5:0]   ca_sel;
-    logic[35:0]  ca_seq;
+    logic        dv_out;
     logic[15:0]  real_out;
     logic[15:0]  imag_out;
 
@@ -17,12 +18,20 @@ module sat_chan_tb ();
     sat_chan uut(.*);
   
     initial begin
-        freq = 32'h01234567;
-        enable = 0;
+        reset = 1;
+        code_freq = 32'h12345678;
+        dop_freq = 32'h01234567;
+        gain = 16'h8000;
+        ca_sel = 0;
+        dv_in = 0;
         #(clk_period*10);
-        enable = 1;
-        #(clk_period*1000);
-        freq = 32'h02468ace;
+        reset = 0;
+        forever begin
+            dv_in = 0;
+            #(clk_period*63);
+            dv_in = 1;
+            #(clk_period*1);
+        end
      end
 
 endmodule
