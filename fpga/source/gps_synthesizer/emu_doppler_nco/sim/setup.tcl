@@ -13,8 +13,8 @@ upgrade_ip -quiet  [get_ips *]
 generate_target {all} [get_ips *]
 
 # Read in the hdl source.
-read_verilog -sv ../doppler_nco.sv
-read_verilog -sv ../doppler_nco_tb.sv
+read_verilog -sv ../emu_doppler_nco.sv
+read_verilog -sv ../emu_doppler_nco_tb.sv
 
 close_project
 

@@ -6,7 +6,7 @@
 // TODO: We probably need loadable code state, phase and frequency. For now, just reset everything.
 // TODO: Also, probably, we need a clock enable.
 
-module code_nco (
+module emu_code_nco (
     input  logic            clk,
     input  logic            reset,
     input  logic[5:0]       ca_sel,
@@ -53,7 +53,7 @@ module code_nco (
 
     // the block rom core.
     logic [35:0]  ca_seq;
-    ca_rom ca_rom_inst (.clka(clk), .addra(ca_addr), .douta(ca_seq));
+    emu_ca_rom ca_rom_inst (.clka(clk), .addra(ca_addr), .douta(ca_seq));
 
     // selet the particular space vehicle code.
     always_ff @(posedge clk) begin

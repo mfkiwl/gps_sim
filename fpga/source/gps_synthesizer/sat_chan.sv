@@ -16,13 +16,13 @@ module sat_chan (
     // Doppler NCO
     logic [5:0] dop_nco_real, dop_nco_imag;    
     logic dopp_dv_out;
-    doppler_nco doppler_nco_inst ( .clk(clk), .reset(reset), .dv_in(dv_in), .freq(dop_freq), .dv_out(dopp_dv_out), .real_out(dop_nco_real), .imag_out(dop_nco_imag) ); // 2 pipe delays
+    emu_doppler_nco doppler_nco_inst ( .clk(clk), .reset(reset), .dv_in(dv_in), .freq(dop_freq), .dv_out(dopp_dv_out), .real_out(dop_nco_real), .imag_out(dop_nco_imag) ); // 2 pipe delays
 
 
     // Code NCO
     logic sat_ca;
     logic code_dv_out;
-    code_nco code_nco_inst (.clk(clk), .reset(reset), .ca_sel(ca_sel), .dv_in(dv_in), .freq(code_freq), .dv_out(code_dv_out), .q(sat_ca)); // 5 pipe delays
+    emu_code_nco code_nco_inst (.clk(clk), .reset(reset), .ca_sel(ca_sel), .dv_in(dv_in), .freq(code_freq), .dv_out(code_dv_out), .q(sat_ca)); // 5 pipe delays
 
 
     // Change the sign on the doppler based on the CA sequence.

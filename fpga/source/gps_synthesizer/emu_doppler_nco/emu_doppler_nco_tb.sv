@@ -1,6 +1,6 @@
 `timescale 1 ns / 1 ps
 
-module doppler_nco_tb();
+module emu_doppler_nco_tb();
 
     logic        reset;
     logic        dv_in;
@@ -13,7 +13,7 @@ module doppler_nco_tb();
     logic clk = 0;
     always #(clk_period/2) clk = ~clk;
     
-    doppler_nco uut(.*);
+    emu_doppler_nco uut(.*);
   
     initial begin
         reset = 1;      

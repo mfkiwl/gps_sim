@@ -1,5 +1,5 @@
 // a dds with complex output
-module doppler_nco (
+module emu_doppler_nco (
     input  logic        clk,
     input  logic        reset,
     //
@@ -28,8 +28,8 @@ module doppler_nco (
         end;
     end;
 
-    dop_cos_rom dop_cos_rom_inst ( .clk(clk), .a(phase[31-:6]), .qspo(real_out));
-    dop_sin_rom dop_sin_rom_inst ( .clk(clk), .a(phase[31-:6]), .qspo(imag_out));
+    emu_dop_cos_rom dop_cos_rom_inst ( .clk(clk), .a(phase[31-:6]), .qspo(real_out));
+    emu_dop_sin_rom dop_sin_rom_inst ( .clk(clk), .a(phase[31-:6]), .qspo(imag_out));
     
     always_ff @(posedge clk) dv_out <= pre_dv_out;
 

@@ -1,6 +1,6 @@
 `timescale 1 ns / 1 ps
 
-module code_nco_tb();
+module emu_code_nco_tb();
 
     logic            reset;
     logic[5:0]       ca_sel;
@@ -13,7 +13,7 @@ module code_nco_tb();
     logic clk = 0;
     always #(clk_period/2) clk = ~clk;
     
-    code_nco uut(.*);
+    emu_code_nco uut(.*);
   
     localparam clocks_per_sample = 64;
     initial begin

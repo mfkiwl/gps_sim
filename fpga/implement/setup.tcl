@@ -12,11 +12,9 @@ load_features ipintegrator
 #set_property  ip_repo_paths ../../hls/cholesky_inverse/csynth/solution1/impl/ip/ [current_project]
 update_ip_catalog
 
-#read_ip ../source/gps_synthesizer/doppler_rom/doppler_rom.xci
-#read_ip ../source/gps_synthesizer/doppler_mult/doppler_mult.xci
-read_ip ../source/gps_synthesizer/doppler_nco/dop_cos_rom/dop_cos_rom.xci
-read_ip ../source/gps_synthesizer/doppler_nco/dop_sin_rom/dop_sin_rom.xci
-read_ip ../source/gps_synthesizer/code_nco/ca_rom/ca_rom.xci
+read_ip ../source/gps_synthesizer/emu_doppler_nco/emu_dop_cos_rom/emu_dop_cos_rom.xci
+read_ip ../source/gps_synthesizer/emu_doppler_nco/emu_dop_sin_rom/emu_dop_sin_rom.xci
+read_ip ../source/gps_synthesizer/emu_code_nco/emu_ca_rom/emu_ca_rom.xci
 read_ip ../source/gps_synthesizer/bb_ila/bb_ila.xci
 read_ip ../source/output_ila/output_ila.xci
 upgrade_ip -quiet  [get_ips *]
@@ -32,8 +30,8 @@ read_verilog -sv ../source/gps_synthesizer/gng/rtl/gng_smul_16_18.v
 read_verilog -sv ../source/gps_synthesizer/gng/rtl/gng.v
 read_verilog -sv ../source/gps_synthesizer/gng/rtl/gng_cmplx.sv
 
-read_verilog -sv ../source/gps_synthesizer/code_nco/code_nco.sv
-read_verilog -sv ../source/gps_synthesizer/doppler_nco/doppler_nco.sv
+read_verilog -sv ../source/gps_synthesizer/emu_code_nco/emu_code_nco.sv
+read_verilog -sv ../source/gps_synthesizer/emu_doppler_nco/emu_doppler_nco.sv
 read_verilog -sv ../source/gps_synthesizer/sat_chan.sv
 read_verilog -sv ../source/gps_synthesizer/gps_emulator.sv
 
