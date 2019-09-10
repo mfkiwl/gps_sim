@@ -77,7 +77,7 @@ module gps_emulator #(
 
     // Add the Gaussian noise source
     logic[15:0] dither_real, dither_imag;
-    assign dither_real = noise_scaled_real[31-:16];
+    assign dither_real = noise_scaled_real[31-:16]; // we should have rounding here.
     assign dither_imag = noise_scaled_imag[31-:16];
     logic[15:0] bb_with_noise_real, bb_with_noise_imag;
     always_ff @(posedge clk) begin
