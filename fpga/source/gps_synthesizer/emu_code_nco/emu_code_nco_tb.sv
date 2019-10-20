@@ -19,20 +19,20 @@ module emu_code_nco_tb();
     initial begin
         reset = 1;
         ca_sel =3;
-        freq = 32'h27456789;
+        freq = (2.0**32)*(1.0/4.0);
         #(clk_period*10);
         reset = 0;
         #(clk_period*10);
 
-        freq = 32'h27456789;
-        for (int i=0; i<200; i++) begin
+        freq = (2.0**32)*(1.0/4.0);
+        for (int i=0; i<1023*5; i++) begin
             dv_in = 1;
             #(clk_period*1);
             dv_in = 0;
             #(clk_period*(clocks_per_sample-1));
         end
 
-        freq = 32'h12468ace;
+        freq = (2.0**32)*(1.0/4.25);
         for (int i=0; i<200; i++) begin
             dv_in = 1;
             #(clk_period*1);

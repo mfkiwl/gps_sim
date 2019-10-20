@@ -1,55 +1,58 @@
-// code_nco.sv - first cut at NCO for the CA code generator. This is needed for code tracking in the receiver.
+// code_nco.sv - NCO for the CA code generator. This is needed for code tracking in the receiver.
 // The code rom must receive a modulo 1023 count. This means that the top bits of a phase accumlator cannot just be used as the address.
-// Instead, a 32 bit frequency accumulator provides a carry out bit to increment a modulo 1023 address counter.
 // The 32 bit frequency is the code bit rate frequency, ie., the chipping rate.
-
-// TODO: We probably need loadable code state, phase and frequency. For now, just reset everything.
-// TODO: Also, probably, we need a clock enable.
 
 module emu_code_nco (
     input  logic            clk,
-    input  logic            reset,
+    input  logic            reset,               // 
     input  logic[5:0]       ca_sel,
-    input  logic            dv_in,
-    input  logic[31:0]      freq,  // phase increment (frequency).
+    input  logic            dv_in,              // this is really a clock enable to be pulsed at the sample rate.
+    input  logic[31:0]      freq,               // phase increment (frequency). This input is used to maintain code lock.
     output logic            dv_out,
     output logic            q
 );
 
-    // phase accumulator - when this rolls-over the code address counter is incremented.
-    logic[32:0] presum;
-    logic cout;
-    logic[31:0] phase;
-    assign presum = phase + freq;
+    localparam integer Naddr = 10;
+    localparam integer Nphase = 32;
+
+    // select the phase increment based on whether jump_latch is true.
+    logic[Nphase-1:0] ph_inc = 0; // initialize for simulation.
+    //always_comb begin
+    always_ff @(posedge clk) begin
+        ph_inc <= freq;
+    end
+
+    // This is the phase accumulator. It is a strange thing because the top 10 bits are the address to the ca_rom and the lower 32 bits are the phase within a chip.
+    // The 10 address bits must count modulo 1023 so in the positive direction addr=1023 must be detected and replaced by 0. In the negative direction it should be replaced by 1022.
+    logic[Naddr+Nphase-1:0] accum;  // 42 bit accumulator.
+    logic[Naddr+Nphase-1:0] pre_sum; 
+    assign pre_sum = $signed(accum) + $signed(ph_inc);
     always_ff @(posedge clk) begin
         if (1 == reset) begin
-            phase <= 0;
-            cout <= 0;
+            accum[Naddr+Nphase-1:Nphase] <= 0;
+            accum[Nphase-1:0]            <= 0;
         end else begin
             if (1==dv_in) begin
-                phase <= presum[31:0];
-                cout  <= presum[32];  // carry out bit to the code address counter.
+                if((2**Naddr-1) == pre_sum[Naddr+Nphase-1:Nphase]) begin // detect special case of address bits == 1023.
+                    if(0==ph_inc[Nphase-1]) begin 
+                        accum[Naddr+Nphase-1:Nphase] <= 0; // if going positive.
+                    end else begin
+                        accum[Naddr+Nphase-1:Nphase] <= 2**Naddr-2; // if going negative.
+                    end
+                    accum[Nphase-1:0] <= pre_sum[Nphase-1:0];
+                end else begin
+                    accum <= pre_sum;
+                end
             end else begin
-                cout  <= 0;
             end
         end
     end
 
-    // code address counter
+    // grab the top bits off the accumulator to be the address to the ca rom.
     logic[9:0] ca_addr;
-    always_ff @(posedge clk) begin
-        if (1==reset) begin
-            ca_addr <= 0;
-        end else begin
-            if (1==cout) begin
-                if(1023==ca_addr) begin // modulo 1023
-                    ca_addr <= 0;
-                end else begin
-                    ca_addr <= ca_addr + 1;
-                end
-            end
-        end
-    end
+    assign ca_addr = accum[Naddr+Nphase-1:Nphase];
+    logic[31:0] ca_phase;
+    assign ca_phase = accum[Nphase-1:0]; 
 
     // the block rom core.
     logic [35:0]  ca_seq;

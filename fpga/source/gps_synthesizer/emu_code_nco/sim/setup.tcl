@@ -7,7 +7,7 @@ set_property board_part em.avnet.com:microzed_7020:part0:1.2 [current_project]
 set_property target_language Verilog [current_project]
 set_property default_lib work [current_project]
 
-read_ip ../ca_rom/ca_rom.xci
+read_ip ../emu_ca_rom/emu_ca_rom.xci
 upgrade_ip -quiet  [get_ips *]
 generate_target {all} [get_ips *]
 
